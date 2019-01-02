@@ -19,5 +19,9 @@ public interface IUserService {
 	ServerResponse<String> checkForgetAnswer(String username, String question, String answer);
 
 	ServerResponse resetForgetPassword(String username, String passwordNew, String token);
+
+	ServerResponse resetPassword(String passwordOld, String passwordNew, User user);
+
+	ServerResponse updateInformation(User user);
 }
 

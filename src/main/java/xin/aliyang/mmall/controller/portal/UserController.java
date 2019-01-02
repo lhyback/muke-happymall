@@ -1,5 +1,6 @@
 package xin.aliyang.mmall.controller.portal;
 
+import net.sf.jsqlparser.schema.Server;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import xin.aliyang.mmall.common.Const;
+import xin.aliyang.mmall.common.ResponseCode;
 import xin.aliyang.mmall.common.ServerResponse;
 import xin.aliyang.mmall.common.TokenCache;
 import xin.aliyang.mmall.pojo.User;
@@ -39,7 +41,7 @@ public class UserController {
 	@ResponseBody
 	public ServerResponse loginout(HttpSession session) {
 		session.removeAttribute(Const.CURRENT_USER);
-		return ServerResponse.createBySuccess();
+		return ServerResponse.createBySuccessMsg("退出成功");
 	}
 
 	@RequestMapping(value = "/register.do")
@@ -85,5 +87,44 @@ public class UserController {
 		return userService.resetForgetPassword(username, passwordNew, token);
 	}
 
+	@RequestMapping(value = "/reset_password.do")
+	@ResponseBody
+	public ServerResponse resetPassword(String passwordOld, String passwordNew, HttpSession session) {
+		User user = (User) session.getAttribute(Const.CURRENT_USER);
+		if (user == null) {
+			return ServerResponse.createByErrorMsg("用户未登录");
+		}
+		return userService.resetPassword(passwordOld, passwordNew, user);
+	}
+
+	@RequestMapping("/update_information.do")
+	@ResponseBody
+	//SpringMVC的数据绑定 支持FORM格式参数直接转POJO
+	public ServerResponse<User> updateInformation(User user, HttpSession session) {
+		User currentUser = (User) session.getAttribute(Const.CURRENT_USER);
+		if (currentUser == null) {
+			return ServerResponse.createByErrorMsg("用户未登录");
+		}
+		//不可修改的属性
+		user.setId(currentUser.getId());
+		user.setUsername(currentUser.getUsername());
+
+		ServerResponse<User> response = userService.updateInformation(user);
+		//若修改成功，需更新session中对应的current_user
+		if (response.isSuccessful()) {
+			session.setAttribute(Const.CURRENT_USER, response.getData());
+		}
+		return response;
+	}
+
+	@RequestMapping("/get_information.do")
+	@ResponseBody
+	public ServerResponse<User> getInformation(HttpSession session) {
+		User currentUser = (User) session.getAttribute(Const.CURRENT_USER);
+		if (currentUser == null) {
+			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "未登录，需要强制登录status=10");
+		}
+		return ServerResponse.createBySuccessData(currentUser);
+	}
 
 }

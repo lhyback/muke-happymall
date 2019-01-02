@@ -12,6 +12,7 @@ import xin.aliyang.mmall.pojo.User;
 import xin.aliyang.mmall.service.IUserService;
 import xin.aliyang.mmall.util.MD5Util;
 
+import javax.servlet.http.HttpSession;
 import java.util.UUID;
 
 /**
@@ -34,7 +35,7 @@ public class UserService implements IUserService {
 		if (user == null) {
 			return ServerResponse.createByErrorMsg("password isn't correct");
 		}
-		user.setPassword(StringUtils.EMPTY);
+		user.setPassword(StringUtils.EMPTY);  //password不能返回给前端
 		return ServerResponse.createBySuccessData(user); //user -> data
 	}
 
@@ -139,5 +140,33 @@ public class UserService implements IUserService {
 			}
 		}
 		return response;
+	}
+
+	@Override
+	public ServerResponse resetPassword(String passwordOld, String passwordNew, User user) {
+		//为防止横向越权，需要先校验旧密码是否正确。
+		if (userMapper.checkPassword(MD5Util.MD5EncodeUtf8(passwordOld), user.getId()) == 0) {
+			return ServerResponse.createByErrorMsg("旧密码输入错误");
+		}
+
+		user.setPassword(MD5Util.MD5EncodeUtf8(passwordNew));
+		if (userMapper.updateByPrimaryKeySelective(user) == 1) {
+			return ServerResponse.createBySuccessMsg("修改密码成功");
+		}
+		return ServerResponse.createByErrorMsg("修改密码失败");
+	}
+
+	@Override
+	public ServerResponse<User> updateInformation(User user) {
+		//检查更新的email是否已存在
+		int rowCount = userMapper.checkEmailByUserId(user.getEmail(), user.getId());
+		if (rowCount > 0) {
+			return ServerResponse.createByErrorMsg("Email已被注册");
+		}
+		rowCount = userMapper.updateByPrimaryKeySelective(user);
+		if (rowCount == 1) {
+			return ServerResponse.createBySuccess("更新个人信息成功", user);
+		}
+		return ServerResponse.createByErrorMsg("更新个人信息失败");
 	}
 }
