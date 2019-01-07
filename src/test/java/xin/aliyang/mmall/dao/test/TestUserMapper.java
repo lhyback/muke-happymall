@@ -7,19 +7,20 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import xin.aliyang.mmall.dao.UserMapper;
 import xin.aliyang.mmall.pojo.User;
+import xin.aliyang.mmall.util.MD5Util;
 
 /**
  * Created by lhy on 2018/8/15.
  */
 
 //@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration("classpath:applicationContext.xml")
+//@ContextConfiguration("classpath:applicationContext-datasource.xml")
 public class TestUserMapper {
 	@Autowired
 	UserMapper userMapper;
 	//@Test
 	public void testSelectUserByNameAndPwd() {
-		User user = userMapper.selectUserByUsernameAndPwd("lhy", "lhy");
+		User user = userMapper.selectUserByUsernameAndPwd("lhy", MD5Util.MD5EncodeUtf8("199556"));
 		System.out.println(user);
 	}
 
@@ -31,10 +32,13 @@ public class TestUserMapper {
 
 	//@Test
 	public void testUpdateUserByUserName() {
-		User user = new User();
+		User user = userMapper.selectByPrimaryKey(22);
+		System.out.println(user);
 		user.setUsername("lhy");
-		user.setPassword("199556");
-		userMapper.updateByUserName(user);
+		user.setPassword(MD5Util.MD5EncodeUtf8("19950506"));
+		userMapper.updateByPrimaryKeySelective(user);
+		//userMapper.updateByUserName(user);
+		System.out.println(userMapper.selectByPrimaryKey(22));
 	}
 
 

@@ -18,7 +18,6 @@ import javax.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/manage/user")
 public class UserManageController {
-
 	@Autowired
 	IUserService userService;
 
@@ -28,11 +27,11 @@ public class UserManageController {
 		ServerResponse response = userService.login(username, password);
 		if (response.isSuccessful()) {
 			User user = (User) response.getData();
-			if (user.getRole() == Const.Role.ROLE_ADMIN) {
+			if (userService.checkUserRole(user, Const.Role.ROLE_ADMIN)) {
 				session.setAttribute(Const.CURRENT_USER, user);
-				return response;
+			} else {
+				return ServerResponse.createByErrorMsg("不是admin用户");
 			}
-			return ServerResponse.createByErrorMsg("not admin");
 		}
 		return response;
 	}

@@ -11,7 +11,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+		<maven.compiler.encoding>UT  F-8</maven.compiler.encoding>
 
 		<org.springframework.version>4.0.0.RELEASE</org.springframework.version>
 		<org.mybatis.version>3.4.1</org.mybatis.version>
@@ -113,6 +113,7 @@
 			<version>5.1.6</version>
 		</dependency>
 
+		<!-- 工具类 -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
@@ -179,10 +180,7 @@
 		</dependency>
 
 
-
-
 		<!-- mybatis pager -->
-
 		<dependency>
 			<groupId>com.github.pagehelper</groupId>
 			<artifactId>pagehelper</artifactId>
@@ -250,6 +248,7 @@
 	<build>
 		<finalName>mmall</finalName>
 		<plugins>
+			<!-- mybatis-generator 用于自动化生成数据库交互代码-->
 			<plugin>
 				<groupId>org.mybatis.generator</groupId>
 				<artifactId>mybatis-generator-maven-plugin</artifactId>
@@ -260,7 +259,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- geelynote maven的核心插件之-complier插件默认只支持编译Java 1.4，因此需要加上支持高版本jre的配置，在pom.xml里面加上 增加编译插件 -->
+			<!-- geelynote maven的核心插件之-complier插件默认只支持编译Java 1.5，因此需要加上支持高版本jre的配置，在pom.xml里面加上 增加编译插件 -->
 			<!-- compilerArguments extdirs发布私有jar包，因为中央仓库没有-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

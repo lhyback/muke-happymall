@@ -2,6 +2,7 @@ package xin.aliyang.mmall.service.impl;
 
 import net.sf.jsqlparser.schema.Server;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xin.aliyang.mmall.common.Const;
@@ -29,36 +30,38 @@ public class UserService implements IUserService {
 		//检查有无该用户名
 		int count = userMapper.checkUsername(username);
 		if (count == 0) {
-			return ServerResponse.createByErrorMsg("user doesn't exist");
+			return ServerResponse.createByErrorMsg("用户名不存在");
 		}
 		User user = userMapper.selectUserByUsernameAndPwd(username, MD5Util.MD5EncodeUtf8(password));
 		if (user == null) {
-			return ServerResponse.createByErrorMsg("password isn't correct");
+			return ServerResponse.createByErrorMsg("密码错误");
 		}
-		user.setPassword(StringUtils.EMPTY);  //password不能返回给前端
+		//password不能返回给前端
+		user.setPassword(StringUtils.EMPTY);
 		return ServerResponse.createBySuccessData(user); //user -> data
 	}
 
 	@Override
 	public ServerResponse checkValid(String str, String type) {
-		int count = 0;
-		if (StringUtils.isBlank(type)) {
-			return ServerResponse.createByErrorMsg("参数类型错误");
-		}
+		int count;
 		//开始校验
 		if (Const.EMAIL.equals(type)) {
 			count = userMapper.checkEmail(str);
 			if (count > 0) {
-				return ServerResponse.createByErrorMsg("该用户名已存在");
+				return ServerResponse.createByErrorMsg("校验失败,该用户名已存在");
+			} else {
+				return ServerResponse.createBySuccessMsg("校验成功,该用户名可用");
 			}
 		} else if (Const.USERNAME.equals(type)) {
 			count = userMapper.checkUsername(str);
 			if (count > 0) {
-				return ServerResponse.createByErrorMsg("该邮箱已存在");
+				return ServerResponse.createByErrorMsg("校验失败,该邮箱已存在");
+			} else {
+				return ServerResponse.createBySuccessMsg("校验成功,该邮箱可用");
 			}
 		}
 
-		return ServerResponse.createBySuccessMsg("校验成功");
+		return ServerResponse.createByErrorMsg("待校验参数类型错误");
 	}
 
 	@Override
@@ -103,6 +106,7 @@ public class UserService implements IUserService {
 		if (rowCount == 1) {
 			String key = TokenCache.TOKEN_PREFIX + username;
 			String token = UUID.randomUUID().toString();
+			//以TOKEN_PREFIX + username作为缓存的key，token作为value
 			TokenCache.setKey(key, token);
 			return ServerResponse.createBySuccessData(token);
 		} else {
@@ -144,7 +148,7 @@ public class UserService implements IUserService {
 
 	@Override
 	public ServerResponse resetPassword(String passwordOld, String passwordNew, User user) {
-		//为防止横向越权，需要先校验旧密码是否正确。
+		//重置密码时，为防止横向越权，需要先校验旧密码是否正确。
 		if (userMapper.checkPassword(MD5Util.MD5EncodeUtf8(passwordOld), user.getId()) == 0) {
 			return ServerResponse.createByErrorMsg("旧密码输入错误");
 		}
@@ -161,12 +165,17 @@ public class UserService implements IUserService {
 		//检查更新的email是否已存在
 		int rowCount = userMapper.checkEmailByUserId(user.getEmail(), user.getId());
 		if (rowCount > 0) {
-			return ServerResponse.createByErrorMsg("Email已被注册");
+			return ServerResponse.createByErrorMsg("该邮箱已被注册");
 		}
 		rowCount = userMapper.updateByPrimaryKeySelective(user);
 		if (rowCount == 1) {
 			return ServerResponse.createBySuccess("更新个人信息成功", user);
 		}
 		return ServerResponse.createByErrorMsg("更新个人信息失败");
+	}
+
+	@Override
+	public Boolean checkUserRole(User user, Integer roleCode) {
+		return user.getRole() == roleCode;
 	}
 }

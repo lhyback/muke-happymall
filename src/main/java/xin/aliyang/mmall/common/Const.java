@@ -9,7 +9,7 @@ public class Const {
 	public static final String USERNAME = "username";
 
 	public interface Role {
-		int ROLE_CUSTOMER = 0;
+		int ROLE_CUSTOMER = 0;  //默认为public static final 变量
 		int ROLE_ADMIN = 1;
 	}
 }

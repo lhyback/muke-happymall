@@ -38,6 +38,7 @@
       #{answer,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER}, now(),
       now())
     </insert>
+
 	<insert id="insertSelective" parameterType="xin.aliyang.mmall.pojo.User">
 		insert into mmall_user
 		<trim prefix="(" suffix=")" suffixOverrides=",">
@@ -223,6 +224,6 @@
 		SELECT COUNT(1)
 		FROM mmall_user
 		WHERE email = #{email}
-		AND id != #{userId}
+		AND id = #{userId}
 	</select>
 </mapper>

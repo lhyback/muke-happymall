@@ -1,5 +1,6 @@
 package xin.aliyang.mmall.service;
 
+import xin.aliyang.mmall.common.Const;
 import xin.aliyang.mmall.common.ServerResponse;
 import xin.aliyang.mmall.pojo.User;
 
@@ -23,5 +24,7 @@ public interface IUserService {
 	ServerResponse resetPassword(String passwordOld, String passwordNew, User user);
 
 	ServerResponse updateInformation(User user);
+
+	Boolean checkUserRole(User user, Integer roleCode);
 }
 

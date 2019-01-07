@@ -26,13 +26,20 @@ public class UserController {
 	@Autowired
 	IUserService userService;
 
-	@RequestMapping(value = "/login.do")
-	@ResponseBody()
+	//@ResponseBody表示返回数据而非页面，并且用springmvc的jackson插件序列化对象
 	//这里不需要@RequestParam
+
+	@RequestMapping(value = "/login.do", method = RequestMethod.POST)
+	@ResponseBody
 	public ServerResponse<User> login(String username, String password, HttpSession session) {
 		ServerResponse response = userService.login(username, password);
+		User user = (User) response.getData();
 		if (response.isSuccessful()) {
-			session.setAttribute(Const.CURRENT_USER, response.getData());
+			if (userService.checkUserRole(user, Const.Role.ROLE_CUSTOMER)) {
+				session.setAttribute(Const.CURRENT_USER, user);
+			} else {
+				return ServerResponse.createByErrorMsg("不是customer用户");
+			}
 		}
 		return response;
 	}
@@ -44,14 +51,14 @@ public class UserController {
 		return ServerResponse.createBySuccessMsg("退出成功");
 	}
 
-	@RequestMapping(value = "/register.do")
+	@RequestMapping(value = "/register.do", method = RequestMethod.POST)
 	@ResponseBody
 	public ServerResponse register(User user) {
-	// 直接由springmvc从请求参数构造一个user对象
+	    //直接由springmvc从请求参数构造一个user对象(数据绑定)
 		return userService.register(user);
 	}
 
-	@RequestMapping(value = "/check_valid.do")
+	@RequestMapping(value = "/check_valid.do", method = RequestMethod.POST)
 	@ResponseBody
 	public ServerResponse checkValid(String str, String type) {
 		return userService.checkValid(str, type);
@@ -68,42 +75,47 @@ public class UserController {
 		}
 	}
 
-	@RequestMapping(value = "/forget_get_question.do")
+	@RequestMapping(value = "/forget_get_question.do", method = RequestMethod.POST)
 	@ResponseBody
 	public ServerResponse<String> getForgetQuestion(String username) {
 		return userService.getForgetQuestion(username);
 	}
 
 
-	@RequestMapping(value = "/forget_check_answer.do")
+	@RequestMapping(value = "/forget_check_answer.do", method = RequestMethod.POST)
 	@ResponseBody
 	public ServerResponse<String> checkForgetAnswer(String username, String question, String answer) {
 		return userService.checkForgetAnswer(username, question, answer);
 	}
 
-	@RequestMapping(value = "/forget_reset_password.do")
+	@RequestMapping(value = "/forget_reset_password.do", method = RequestMethod.POST)
 	@ResponseBody
 	public ServerResponse resetForgetPassword(String username, String passwordNew, String token) {
 		return userService.resetForgetPassword(username, passwordNew, token);
 	}
 
-	@RequestMapping(value = "/reset_password.do")
+	@RequestMapping(value = "/reset_password.do", method = RequestMethod.POST)
 	@ResponseBody
 	public ServerResponse resetPassword(String passwordOld, String passwordNew, HttpSession session) {
 		User user = (User) session.getAttribute(Const.CURRENT_USER);
 		if (user == null) {
-			return ServerResponse.createByErrorMsg("用户未登录");
+			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
 		}
-		return userService.resetPassword(passwordOld, passwordNew, user);
+		ServerResponse response = userService.resetPassword(passwordOld, passwordNew, user);
+		if (response.isSuccessful()) {
+			//session中登出当前用户
+			session.removeAttribute(Const.CURRENT_USER);
+		}
+		return response;
 	}
 
-	@RequestMapping("/update_information.do")
+	@RequestMapping(value = "/update_information.do", method = RequestMethod.POST)
 	@ResponseBody
 	//SpringMVC的数据绑定 支持FORM格式参数直接转POJO
 	public ServerResponse<User> updateInformation(User user, HttpSession session) {
 		User currentUser = (User) session.getAttribute(Const.CURRENT_USER);
 		if (currentUser == null) {
-			return ServerResponse.createByErrorMsg("用户未登录");
+			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
 		}
 		//不可修改的属性
 		user.setId(currentUser.getId());
@@ -120,9 +132,10 @@ public class UserController {
 	@RequestMapping("/get_information.do")
 	@ResponseBody
 	public ServerResponse<User> getInformation(HttpSession session) {
+		//登录后的用户信息, 都存在session中
 		User currentUser = (User) session.getAttribute(Const.CURRENT_USER);
 		if (currentUser == null) {
-			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "未登录，需要强制登录status=10");
+			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
 		}
 		return ServerResponse.createBySuccessData(currentUser);
 	}

@@ -51,12 +51,8 @@
       <if test="sortOrder != null" >
         sort_order,
       </if>
-      <if test="createTime != null" >
         create_time,
-      </if>
-      <if test="updateTime != null" >
         update_time,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -74,12 +70,8 @@
       <if test="sortOrder != null" >
         #{sortOrder,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null" >
         now(),
-      </if>
-      <if test="updateTime != null" >
         now(),
-      </if>
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="xin.aliyang.mmall.pojo.Category" >
