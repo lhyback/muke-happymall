@@ -45,15 +45,17 @@ public class UserService implements IUserService {
 	public ServerResponse checkValid(String str, String type) {
 		int count;
 		//开始校验
-		if (Const.EMAIL.equals(type)) {
-			count = userMapper.checkEmail(str);
+		if (Const.USERNAME.equals(type)) {
+			count = userMapper.checkUsername(str);
 			if (count > 0) {
 				return ServerResponse.createByErrorMsg("校验失败,该用户名已存在");
 			} else {
 				return ServerResponse.createBySuccessMsg("校验成功,该用户名可用");
 			}
-		} else if (Const.USERNAME.equals(type)) {
-			count = userMapper.checkUsername(str);
+		}
+
+		if (Const.EMAIL.equals(type)) {
+			count = userMapper.checkEmail(str);
 			if (count > 0) {
 				return ServerResponse.createByErrorMsg("校验失败,该邮箱已存在");
 			} else {
@@ -73,11 +75,11 @@ public class UserService implements IUserService {
 		ServerResponse validResponse = checkValid(username, Const.USERNAME);
 		if (!validResponse.isSuccessful()) {
 			return validResponse;
-		} else {
-			validResponse = checkValid(email, Const.EMAIL);
-			if (!validResponse.isSuccessful()) {
-				return validResponse;
-			}
+		}
+
+		validResponse = checkValid(email, Const.EMAIL);
+		if (!validResponse.isSuccessful()) {
+			return validResponse;
 		}
 
 		//校验成功，开始注册

@@ -9,41 +9,36 @@ import java.io.InputStreamReader;
 import java.util.Properties;
 
 /**
- * Created by geely
+ * Created by lhy on 2019/1/13.
  */
 public class PropertiesUtil {
+	private static Logger logger = LoggerFactory.getLogger(PropertiesUtil.class);
+	private static Properties properties;
 
-    private static Logger logger = LoggerFactory.getLogger(PropertiesUtil.class);
+	static {
+		properties = new Properties();
+		try {
+			//properties.load(PropertiesUtil.class.getResourceAsStream("mmall.properties"));
+			properties.load(new InputStreamReader(PropertiesUtil.class.getClassLoader().getResourceAsStream("mmall.properties")));
+		} catch (IOException e) {
+			logger.error("读取配置文件失败", e);
+		}
+	}
 
-    private static Properties props;
+	public static String getProperty(String key) {
+		String value =  properties.getProperty(key.trim());
+		if (StringUtils.isBlank(value)) {
+			return null;
+		}
+		return value.trim();
+	}
 
-    static {
-        String fileName = "mmall.properties";
-        props = new Properties();
-        try {
-            props.load(new InputStreamReader(PropertiesUtil.class.getClassLoader().getResourceAsStream(fileName),"UTF-8"));
-        } catch (IOException e) {
-            logger.error("配置文件读取异常",e);
-        }
-    }
-
-    public static String getProperty(String key){
-        String value = props.getProperty(key.trim());
-        if(StringUtils.isBlank(value)){
-            return null;
-        }
-        return value.trim();
-    }
-
-    public static String getProperty(String key,String defaultValue){
-
-        String value = props.getProperty(key.trim());
-        if(StringUtils.isBlank(value)){
-            value = defaultValue;
-        }
-        return value.trim();
-    }
-
-
+	public static String getProperty(String key, String defaultValue) {
+		String value = properties.getProperty(key.trim());
+		if (StringUtils.isBlank(value)) {
+			return null;
+		}
+		return value.trim();
+	}
 
 }

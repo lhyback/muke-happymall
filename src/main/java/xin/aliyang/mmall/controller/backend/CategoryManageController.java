@@ -30,16 +30,61 @@ public class CategoryManageController {
 	@ResponseBody
 	public ServerResponse addCategory(String categoryName, @RequestParam(value = "parentId", defaultValue = "0") Integer parentId,
 									  HttpSession session) {
+		//用户鉴权
 		User user = (User) session.getAttribute(Const.CURRENT_USER);
 		if (user == null) {
 			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
 		}
-
 		if (!userService.checkUserRole(user, Const.Role.ROLE_ADMIN)) {
 			return ServerResponse.createByErrorMsg("不是admin用户，无权限");
 		}
 
 		return categoryService.addCategory(categoryName, parentId);
+	}
+
+	@RequestMapping("/set_category_name.do")
+	@ResponseBody
+	public ServerResponse setCategoryName(Integer categoryId, String categoryName, HttpSession session) {
+		//用户鉴权
+		User user = (User) session.getAttribute(Const.CURRENT_USER);
+		if (user == null) {
+			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
+		}
+		if (!userService.checkUserRole(user, Const.Role.ROLE_ADMIN)) {
+			return ServerResponse.createByErrorMsg("不是admin用户，无权限");
+		}
+
+		return categoryService.setCategoryName(categoryId, categoryName);
+	}
+
+	@RequestMapping("/get_child_category.do")
+	@ResponseBody
+	public ServerResponse getDirectChildCategory(@RequestParam(value = "categoryId", defaultValue = "0") Integer categoryId, HttpSession session) {
+		//用户鉴权
+		User user = (User) session.getAttribute(Const.CURRENT_USER);
+		if (user == null) {
+			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
+		}
+		if (!userService.checkUserRole(user, Const.Role.ROLE_ADMIN)) {
+			return ServerResponse.createByErrorMsg("不是admin用户，无权限");
+		}
+
+		return categoryService.getDirectChildCategory(categoryId);
+	}
+
+	@RequestMapping("/get_deep_child_category.do")
+	@ResponseBody
+	public ServerResponse getDeepChildCategory(Integer categoryId, HttpSession session) {
+		//用户鉴权
+		User user = (User) session.getAttribute(Const.CURRENT_USER);
+		if (user == null) {
+			return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
+		}
+		if (!userService.checkUserRole(user, Const.Role.ROLE_ADMIN)) {
+			return ServerResponse.createByErrorMsg("不是admin用户，无权限");
+		}
+
+		return categoryService.getDeepChildCategory(categoryId);
 	}
 
 }

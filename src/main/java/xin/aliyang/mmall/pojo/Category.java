@@ -86,4 +86,25 @@ public class Category {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Category category = (Category) o;
+
+		if (id != null ? !id.equals(category.id) : category.id != null) return false;
+		if (parentId != null ? !parentId.equals(category.parentId) : category.parentId != null) return false;
+		if (name != null ? !name.equals(category.name) : category.name != null) return false;
+		if (status != null ? !status.equals(category.status) : category.status != null) return false;
+		if (sortOrder != null ? !sortOrder.equals(category.sortOrder) : category.sortOrder != null) return false;
+		if (createTime != null ? !createTime.equals(category.createTime) : category.createTime != null) return false;
+		return updateTime != null ? updateTime.equals(category.updateTime) : category.updateTime == null;
+	}
+
+	@Override
+	public int hashCode() {
+		return id != null ? id.hashCode() : 0;
+	}
 }
