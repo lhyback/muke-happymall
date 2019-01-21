@@ -21,4 +21,7 @@ public interface ProductMapper {
     List<Product> selectAllProduct();
 
 	List<Product> selectConditionalProduct(@Param("productName") String productName, @Param("productId") Integer productId);
+
+    List<Product> selectByNameAndCategoryIds(@Param("keyword") String keyword,
+											 @Param("categoryIds") List<Integer> categoryIds);
 }

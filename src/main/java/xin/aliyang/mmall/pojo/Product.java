@@ -1,5 +1,8 @@
 package xin.aliyang.mmall.pojo;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -142,4 +145,14 @@ public class Product {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
+
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.toString(this, ToStringStyle.JSON_STYLE);
+	}
+
+	public static void main(String[] args) {
+		Product product = new Product();
+		System.out.println(product);
+	}
 }

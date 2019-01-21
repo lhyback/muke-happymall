@@ -89,7 +89,8 @@ public class CategoryService implements ICategoryService {
 
 	@Override
 	public Category getParentCategory(Integer categoryId) {
-		return categoryMapper.selectParentCategory(categoryId);
+		Category category = categoryMapper.selectParentCategory(categoryId);
+		return category;
 	}
 
 	/**

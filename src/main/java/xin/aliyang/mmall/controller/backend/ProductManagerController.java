@@ -27,6 +27,7 @@ import xin.aliyang.mmall.util.PropertiesUtil;
 import xin.aliyang.mmall.vo.ProductDetailVO;
 import xin.aliyang.mmall.vo.ProductListVO;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.*;
@@ -130,18 +131,7 @@ public class ProductManagerController {
 			return ServerResponse.createByErrorMsg("不是admin用户，无权限");
 		}
 
-		ServerResponse response = productService.getProductList(pageNum, pageSize);
-		//PageInfo<T> 表示内部含有一个list<T>
-		PageInfo pageInfo = (PageInfo) response.getData();
-		List<Product> productList = pageInfo.getList();
-		List<ProductListVO> list = new ArrayList<>();
-		for (Product product : productList) {
-			ProductListVO productListVO = assembleProductListVO(product);
-			list.add(productListVO);
-		}
-		//这里不能重新new一个pageInfo，因为分页相关信息在service层自动填充了
-		pageInfo.setList(list);
-		return ServerResponse.createBySuccessData(pageInfo);
+		return productService.getProductList(pageNum, pageSize);
 	}
 
 	@RequestMapping("/search.do")
@@ -159,17 +149,7 @@ public class ProductManagerController {
 			return ServerResponse.createByErrorMsg("不是admin用户，无权限");
 		}
 
-		ServerResponse response = productService.searchProduct(productName, productId, pageNum, pageSize);
-		PageInfo pageInfo = (PageInfo) response.getData();
-		List<Product> productList = pageInfo.getList();
-		List<ProductListVO> list = new ArrayList<>();
-		for (Product product : productList) {
-			ProductListVO productListVO = assembleProductListVO(product);
-			list.add(productListVO);
-		}
-
-		pageInfo.setList(list);
-		return ServerResponse.createBySuccessData(list);
+		return productService.searchProduct(productName, productId, pageNum, pageSize);
 	}
 
 
@@ -196,6 +176,7 @@ public class ProductManagerController {
 		String tmpPath = session.getServletContext().getRealPath("upload");
 		String remotePath = "img";
 		String uploadFileName = null;
+
 		try {
 			uploadFileName = fileService.uploadToFtpServer(file, tmpPath, remotePath);
 			String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + remotePath + "/" + uploadFileName;
@@ -219,16 +200,46 @@ public class ProductManagerController {
 	 */
 	@RequestMapping("/richtext_img_upload.do")
 	@ResponseBody
-	public Map uploadRichText(@RequestParam(value = "upload_file", required = false) MultipartFile file, HttpSession session) {
+	public Map uploadRichText(@RequestParam(value = "upload_file", required = false) MultipartFile file,
+							  HttpSession session,
+							  HttpServletResponse response) {
 		User user = (User) session.getAttribute(Const.CURRENT_USER);
+		Map<String, Object> map = new HashMap();
 		if (user == null) {
 			//return ServerResponse.createByErrorCodeMsg(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
+			map.put("success", false);
+			map.put("msg", "用户未登录");
+			map.put("file_path", null);
+			return map;
 		}
 		if (!userService.checkUserRole(user, Const.Role.ROLE_ADMIN)) {
 			//return ServerResponse.createByErrorMsg("不是admin用户，无权限");
+			map.put("success", false);
+			map.put("msg", "不是admin用户，无权限");
+			map.put("file_path", null);
+			return map;
 		}
-		//TODO
-		return null;
+
+		String tmpPath = session.getServletContext().getRealPath("upload");
+		String remotePath = "richtext";
+		String uploadFileName = null;
+
+		try {
+			uploadFileName = fileService.uploadToFtpServer(file, tmpPath, remotePath);
+			String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + remotePath + "/" + uploadFileName;
+			map.put("success", true);
+			map.put("msg", "上传富文本成功");
+			map.put("file_path", url);
+			//设置header
+			response.setHeader("Access-Control-Allow-Headers", "X-File-Name");
+
+		} catch (IOException e) {
+			logger.error("上传富文本失败", e);
+			map.put("success", false);
+			map.put("msg", "上传富文本失败");
+		}
+
+		return map;
 	}
 
 
@@ -266,18 +277,6 @@ public class ProductManagerController {
 		return productDetailVO;
 	}
 
-	private ProductListVO assembleProductListVO(Product product) {
-		ProductListVO productListVO = new ProductListVO();
-		//commom field
-		productListVO.setId(product.getId());
-		productListVO.setCategoryId(product.getCategoryId());
-		productListVO.setName(product.getName());
-		productListVO.setSubtitle(product.getSubtitle());
-		productListVO.setMainImage(product.getMainImage());
-		productListVO.setPrice(product.getPrice());
-		productListVO.setStatus(product.getStatus());
 
-		return productListVO;
-	}
 
 }
